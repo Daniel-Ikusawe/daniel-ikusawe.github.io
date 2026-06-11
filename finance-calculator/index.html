@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Calculator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:linear-gradient(145deg,#c3cfe2,#d7e1ee,#c8d6e8);
+  --orb1:rgba(100,160,255,0.22);--orb2:rgba(180,130,255,0.15);
+  --gl:rgba(255,255,255,0.45);--gl-bd:rgba(255,255,255,0.65);
+  --gl-sh:0 4px 28px rgba(70,100,150,0.13),inset 0 1px 0 rgba(255,255,255,0.75);
+  --txt:#1a1f35;--txt2:#4a5068;--mu:#8890a8;
+  --ac:#007AFF;--ac-r:0,122,255;--err:#FF3B30;--ok:#30D158;
+  --inp:rgba(255,255,255,0.5);--inp-bd:rgba(255,255,255,0.7);
+  --cb-n:rgba(255,255,255,0.45);--cb-nh:rgba(255,255,255,0.68);
+  --cb-o:rgba(0,122,255,0.9);--cb-f:rgba(170,182,210,0.5);--cb-fh:rgba(170,182,210,0.72);
+  --cb-m:rgba(200,210,228,0.4);
+  --res:rgba(0,122,255,0.06);--res-bd:rgba(0,122,255,0.18);
+  --inf:rgba(0,122,255,0.05);--inf-bd:rgba(0,122,255,0.12);
+  --nav-a:rgba(0,122,255,0.12);--sep:rgba(0,0,0,0.06);
+}
+
+body.dark{
+  --bg:linear-gradient(145deg,#07091a,#0d1025,#07091a);
+  --orb1:rgba(70,120,255,0.12);--orb2:rgba(140,90,255,0.09);
+  --gl:rgba(14,18,38,0.72);--gl-bd:rgba(255,255,255,0.06);
+  --gl-sh:0 4px 28px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.03);
+  --txt:#e4e8f8;--txt2:#7880a8;--mu:#3a4060;
+  --ac:#0A84FF;--ac-r:10,132,255;--err:#FF453A;--ok:#32D74B;
+  --inp:rgba(255,255,255,0.05);--inp-bd:rgba(255,255,255,0.08);
+  --cb-n:rgba(255,255,255,0.07);--cb-nh:rgba(255,255,255,0.13);
+  --cb-o:rgba(10,132,255,0.9);--cb-f:rgba(255,255,255,0.1);--cb-fh:rgba(255,255,255,0.17);
+  --cb-m:rgba(255,255,255,0.05);
+  --res:rgba(10,132,255,0.09);--res-bd:rgba(10,132,255,0.22);
+  --inf:rgba(10,132,255,0.07);--inf-bd:rgba(10,132,255,0.16);
+  --nav-a:rgba(10,132,255,0.16);--sep:rgba(255,255,255,0.04);
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--txt);height:100vh;overflow:hidden;
+  transition:background .3s,color .3s;position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 55% at 15% 30%,var(--orb1),transparent),
+             radial-gradient(ellipse 55% 60% at 85% 72%,var(--orb2),transparent);
+}
+.app{display:flex;height:100vh;position:relative;z-index:1}
+
+/* ── Sidebar ── */
+.sb{
+  width:208px;min-width:208px;height:100vh;overflow-y:auto;
+  background:var(--gl);backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
+  border-right:1px solid var(--gl-bd);display:flex;flex-direction:column;
+  transition:background .3s;
+}
+.sb::-webkit-scrollbar{width:0}
+.sb-top{
+  padding:20px 16px 16px;border-bottom:1px solid var(--sep);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.sb-brand{display:flex;align-items:center;gap:8px}
+.sb-logo{font-size:20px;line-height:1;color:var(--ac)}
+.sb-name{font-size:14px;font-weight:700;letter-spacing:-.01em;color:var(--txt)}
+.sb-sub{font-size:10px;color:var(--mu);letter-spacing:.04em;text-transform:uppercase;margin-top:1px}
+
+/* Theme toggle */
+.tt{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0}
+.tt input{display:none}
+.tt-track{
+  position:absolute;inset:0;border-radius:20px;
+  background:rgba(120,130,160,0.3);transition:background .2s;
+}
+.tt-thumb{
+  position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;
+  top:3px;left:3px;transition:transform .2s,background .2s;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.tt input:checked~.tt-track{background:rgba(var(--ac-r),0.5)}
+.tt input:checked~.tt-track .tt-thumb{transform:translateX(16px)}
+
+.sb-nav{flex:1;padding:8px 0 16px}
+.nav-sec-lbl{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--mu);padding:12px 16px 4px;display:block;
+}
+.nav-btn{
+  display:flex;align-items:center;gap:8px;width:100%;padding:8px 16px;
+  background:none;border:none;border-left:2px solid transparent;
+  font-size:12.5px;color:var(--txt2);cursor:pointer;text-align:left;
+  font-family:inherit;transition:all .12s;
+}
+.nav-btn:hover{background:var(--nav-a);color:var(--txt)}
+.nav-btn.act{background:var(--nav-a);border-left-color:var(--ac);color:var(--ac);font-weight:600}
+.nav-ic{font-size:13px;width:18px;text-align:center;flex-shrink:0}
+
+/* ── Main ── */
+.main{flex:1;height:100vh;overflow-y:auto;padding:28px 32px}
+.main::-webkit-scrollbar{width:5px}
+.main::-webkit-scrollbar-thumb{background:var(--sep);border-radius:3px}
+.panel{display:none}
+.panel.act{display:block}
+
+/* Glass card */
+.card{
+  background:var(--gl);backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
+  border:1px solid var(--gl-bd);border-radius:16px;
+  box-shadow:var(--gl-sh);padding:24px;margin-bottom:16px;
+  transition:background .3s,border-color .3s;
+}
+
+/* Panel header */
+.p-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.p-title{font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--txt)}
+.p-sub{font-size:13px;color:var(--mu);margin-top:3px}
+.btn-info{
+  background:rgba(var(--ac-r),0.1);border:1px solid rgba(var(--ac-r),0.2);
+  color:var(--ac);border-radius:50%;width:28px;height:28px;font-size:13px;
+  cursor:pointer;transition:all .15s;flex-shrink:0;margin-left:12px;margin-top:2px;
+}
+.btn-info:hover{background:rgba(var(--ac-r),0.2)}
+
+/* Info box */
+.inf-box{
+  background:var(--inf);border:1px solid var(--inf-bd);border-radius:10px;
+  padding:14px 16px;margin-bottom:16px;display:none;
+  font-size:13px;color:var(--txt2);line-height:1.6;
+}
+.inf-box.open{display:block}
+.inf-formula{
+  font-family:'SF Mono','Fira Code','Courier New',monospace;
+  font-size:12.5px;background:rgba(var(--ac-r),0.08);
+  border-radius:6px;padding:8px 12px;margin-bottom:8px;color:var(--ac);
+}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--mu)}
+.inp{
+  background:var(--inp);border:1px solid var(--inp-bd);border-radius:8px;
+  padding:9px 12px;font-size:13px;color:var(--txt);outline:none;
+  font-family:inherit;transition:border-color .15s,background .3s;width:100%;
+}
+.inp:focus{border-color:rgba(var(--ac-r),0.6);background:rgba(var(--ac-r),0.04)}
+.inp::placeholder{color:var(--mu)}
+.inp-ta{resize:vertical;min-height:80px;line-height:1.55}
+.vh{font-size:11px;color:var(--ac);min-height:16px;font-weight:500}
+
+.btn-calc{
+  background:var(--ac);color:#fff;border:none;border-radius:10px;
+  padding:11px 24px;font-size:14px;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:opacity .15s;width:100%;
+}
+.btn-calc:hover{opacity:.85}
+
+/* Result box */
+.res-box{
+  background:var(--res);border:1px solid var(--res-bd);border-radius:12px;
+  padding:18px;margin-top:14px;display:none;
+}
+.res-box.show{display:block}
+.res-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--sep)}
+.res-row:last-of-type{border-bottom:none}
+.res-lbl{font-size:12px;color:var(--txt2)}
+.res-val{font-size:14px;font-weight:700;color:var(--txt)}
+.res-hi .res-val{font-size:18px;color:var(--ac)}
+.res-pos .res-val{color:var(--ok)}
+.res-neg .res-val{color:var(--err)}
+.res-note{
+  font-size:12.5px;color:var(--txt2);line-height:1.55;margin-top:12px;
+  padding-top:12px;border-top:1px solid var(--sep);
+}
+
+/* ── Basic Calculator ── */
+.calc-wrap{max-width:320px;margin:0 auto}
+.calc-disp{
+  background:rgba(0,0,0,0.12);border-radius:12px;
+  padding:16px 18px;margin-bottom:12px;text-align:right;
+  border:1px solid var(--sep);
+}
+body.dark .calc-disp{background:rgba(0,0,0,0.35)}
+.calc-expr{font-size:13px;color:var(--mu);min-height:18px;margin-bottom:2px;word-break:break-all}
+.calc-num{font-size:32px;font-weight:300;color:var(--txt);letter-spacing:-.02em;word-break:break-all;line-height:1.1}
+.calc-mem-ind{font-size:11px;color:var(--ac);text-align:left;margin-top:2px;min-height:14px}
+
+.cb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cb{
+  border:none;border-radius:10px;font-size:16px;font-weight:500;
+  cursor:pointer;font-family:inherit;color:var(--txt);
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  transition:all .1s;user-select:none;-webkit-user-select:none;
+}
+.cb:active{transform:scale(.94)}
+.cb-n{background:var(--cb-n)}
+.cb-n:hover{background:var(--cb-nh)}
+.cb-f{background:var(--cb-f);font-size:14px}
+.cb-f:hover{background:var(--cb-fh)}
+.cb-o{background:var(--cb-o);color:#fff}
+.cb-o:hover{opacity:.85}
+.cb-m{background:var(--cb-m);font-size:12px;color:var(--txt2)}
+.cb-m:hover{background:var(--cb-f)}
+.cb-w{grid-column:span 2;aspect-ratio:unset;padding:0 20px;height:52px}
+.cb-act{background:var(--ac)!important;color:#fff!important}
+
+/* EV rows */
+.ev-row{
+  display:grid;grid-template-columns:1fr 1fr auto;gap:8px;
+  align-items:center;margin-bottom:8px;
+}
+.ev-row-num{font-size:11px;color:var(--mu);text-align:center}
+.btn-add-row{
+  background:rgba(var(--ac-r),0.1);border:1px solid rgba(var(--ac-r),0.2);
+  color:var(--ac);border-radius:8px;padding:8px 16px;font-size:13px;
+  cursor:pointer;font-family:inherit;transition:all .12s;width:100%;
+  margin-bottom:12px;
+}
+.btn-add-row:hover{background:rgba(var(--ac-r),0.18)}
+.btn-rm{
+  background:rgba(255,60,50,0.1);border:1px solid rgba(255,60,50,0.15);
+  color:var(--err);border-radius:8px;width:32px;height:38px;
+  font-size:16px;cursor:pointer;transition:all .12s;flex-shrink:0;
+}
+.btn-rm:hover{background:rgba(255,60,50,0.2)}
+
+/* ── Right Panel ── */
+.rp{
+  width:260px;min-width:260px;height:100vh;overflow-y:auto;
+  background:var(--gl);backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
+  border-left:1px solid var(--gl-bd);display:flex;flex-direction:column;
+  transition:background .3s;
+}
+.rp::-webkit-scrollbar{width:0}
+.rp-tabs{display:flex;border-bottom:1px solid var(--sep);flex-shrink:0}
+.rp-tab{
+  flex:1;padding:14px;font-size:13px;font-weight:500;border:none;
+  background:none;cursor:pointer;color:var(--mu);font-family:inherit;
+  border-bottom:2px solid transparent;transition:all .12s;
+}
+.rp-tab:hover{color:var(--txt)}
+.rp-tab.act{color:var(--ac);border-bottom-color:var(--ac)}
+.rp-body{padding:14px;flex:1;overflow-y:auto}
+.rp-body::-webkit-scrollbar{width:4px}
+.rp-body::-webkit-scrollbar-thumb{background:var(--sep);border-radius:2px}
+
+/* Variables */
+.var-add{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.var-add-row{display:flex;gap:6px}
+.btn-save{
+  background:var(--ac);color:#fff;border:none;border-radius:8px;
+  padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:opacity .15s;white-space:nowrap;
+}
+.btn-save:hover{opacity:.85}
+.var-tip{font-size:11px;color:var(--mu);margin-bottom:10px;line-height:1.5}
+.var-item{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  background:var(--inp);border:1px solid var(--inp-bd);border-radius:8px;
+  margin-bottom:6px;
+}
+.var-name{font-size:13px;font-weight:600;color:var(--ac);flex:1}
+.var-val{font-size:13px;color:var(--txt2)}
+.var-del{
+  background:none;border:none;color:var(--mu);cursor:pointer;
+  font-size:16px;padding:0 2px;transition:color .12s;
+}
+.var-del:hover{color:var(--err)}
+.empty-state{text-align:center;font-size:12.5px;color:var(--mu);padding:24px 0}
+
+/* History */
+.hist-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.hist-count{font-size:11px;color:var(--mu)}
+.btn-clr{
+  background:none;border:1px solid rgba(255,60,50,.2);color:var(--err);
+  border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;
+  font-family:inherit;transition:all .12s;
+}
+.btn-clr:hover{background:rgba(255,60,50,.08)}
+.hist-item{
+  padding:10px 12px;background:var(--inp);border:1px solid var(--inp-bd);
+  border-radius:8px;margin-bottom:6px;cursor:default;
+}
+.hist-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ac);margin-bottom:3px}
+.hist-summary{font-size:12px;color:var(--txt2);margin-bottom:3px;line-height:1.4}
+.hist-result{font-size:13px;font-weight:700;color:var(--txt)}
+.hist-time{font-size:10px;color:var(--mu);margin-top:3px}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--txt);color:var(--bg);padding:9px 18px;border-radius:8px;
+  font-size:13px;font-weight:500;opacity:0;transition:all .2s;
+  pointer-events:none;z-index:9999;white-space:nowrap;
+}
+body.dark .toast{background:var(--txt);color:#0d1025}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Scrollbar global */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--sep);border-radius:3px}
+
+/* EV label row */
+.ev-labels{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:6px}
+.ev-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--mu)}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ── Sidebar ── -->
+<aside class="sb">
+  <div class="sb-top">
+    <div class="sb-brand">
+      <span class="sb-logo">◈</span>
+      <div>
+        <div class="sb-name">FinCalc</div>
+        <div class="sb-sub">Trading Tools</div>
+      </div>
+    </div>
+    <label class="tt">
+      <input type="checkbox" id="themeChk" onchange="setTheme(this.checked)">
+      <span class="tt-track"><span class="tt-thumb"></span></span>
+    </label>
+  </div>
+
+  <nav class="sb-nav">
+    <span class="nav-sec-lbl">Core</span>
+    <button class="nav-btn act" onclick="showPanel('basic',this)"><span class="nav-ic">⊞</span>Basic Calculator</button>
+
+    <span class="nav-sec-lbl">Statistics</span>
+    <button class="nav-btn" onclick="showPanel('stats',this)"><span class="nav-ic">∑</span>Statistical Analysis</button>
+    <button class="nav-btn" onclick="showPanel('ev',this)"><span class="nav-ic">◎</span>Expected Value</button>
+
+    <span class="nav-sec-lbl">Risk Management</span>
+    <button class="nav-btn" onclick="showPanel('position',this)"><span class="nav-ic">⊙</span>Position Sizing</button>
+    <button class="nav-btn" onclick="showPanel('rr',this)"><span class="nav-ic">⇅</span>Risk / Reward</button>
+    <button class="nav-btn" onclick="showPanel('drawdown',this)"><span class="nav-ic">↘</span>Drawdown</button>
+    <button class="nav-btn" onclick="showPanel('breakeven',this)"><span class="nav-ic">⊖</span>Break-even Win Rate</button>
+
+    <span class="nav-sec-lbl">Performance</span>
+    <button class="nav-btn" onclick="showPanel('pnl',this)"><span class="nav-ic">£</span>P&amp;L Calculator</button>
+    <button class="nav-btn" onclick="showPanel('expectancy',this)"><span class="nav-ic">⊕</span>Trade Expectancy</button>
+    <button class="nav-btn" onclick="showPanel('kelly',this)"><span class="nav-ic">◆</span>Kelly Criterion</button>
+    <button class="nav-btn" onclick="showPanel('roi',this)"><span class="nav-ic">%</span>ROI Calculator</button>
+
+    <span class="nav-sec-lbl">Finance</span>
+    <button class="nav-btn" onclick="showPanel('compound',this)"><span class="nav-ic">⟲</span>Compound Interest</button>
+    <button class="nav-btn" onclick="showPanel('sharpe',this)"><span class="nav-ic">◈</span>Sharpe Ratio</button>
+    <button class="nav-btn" onclick="showPanel('cagr',this)"><span class="nav-ic">↑</span>CAGR</button>
+    <button class="nav-btn" onclick="showPanel('leverage',this)"><span class="nav-ic">⊗</span>Leverage &amp; Margin</button>
+  </nav>
+</aside>
+
+<!-- ── Main ── -->
+<main class="main" id="mainArea">
+
+<!-- BASIC CALCULATOR -->
+<section id="panel-basic" class="panel act">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Basic Calculator</div><div class="p-sub">Arithmetic with memory — keyboard shortcuts supported</div></div>
+    </div>
+    <div class="calc-wrap">
+      <div class="calc-disp">
+        <div class="calc-expr" id="calcExpr"></div>
+        <div class="calc-num" id="calcNum">0</div>
+        <div class="calc-mem-ind" id="calcMemInd"></div>
+      </div>
+      <div class="cb-grid">
+        <button class="cb cb-f" onclick="cFn('clear')">AC</button>
+        <button class="cb cb-f" onclick="cFn('negate')">±</button>
+        <button class="cb cb-f" onclick="cFn('pct')">%</button>
+        <button class="cb cb-o" onclick="cOp('÷')">÷</button>
+
+        <button class="cb cb-n" onclick="cDig('7')">7</button>
+        <button class="cb cb-n" onclick="cDig('8')">8</button>
+        <button class="cb cb-n" onclick="cDig('9')">9</button>
+        <button class="cb cb-o" onclick="cOp('×')">×</button>
+
+        <button class="cb cb-n" onclick="cDig('4')">4</button>
+        <button class="cb cb-n" onclick="cDig('5')">5</button>
+        <button class="cb cb-n" onclick="cDig('6')">6</button>
+        <button class="cb cb-o" onclick="cOp('−')">−</button>
+
+        <button class="cb cb-n" onclick="cDig('1')">1</button>
+        <button class="cb cb-n" onclick="cDig('2')">2</button>
+        <button class="cb cb-n" onclick="cDig('3')">3</button>
+        <button class="cb cb-o" onclick="cOp('+')">+</button>
+
+        <button class="cb cb-n cb-w" onclick="cDig('0')">0</button>
+        <button class="cb cb-n" onclick="cDig('.')">.</button>
+        <button class="cb cb-o" onclick="cEq()">=</button>
+
+        <button class="cb cb-f" onclick="cFn('sqrt')" style="font-size:14px">√x</button>
+        <button class="cb cb-f" onclick="cFn('sq')" style="font-size:14px">x²</button>
+        <button class="cb cb-f" onclick="cFn('inv')" style="font-size:14px">1/x</button>
+        <button class="cb cb-f" onclick="cFn('back')">⌫</button>
+
+        <button class="cb cb-m" onclick="cMem('mc')">MC</button>
+        <button class="cb cb-m" onclick="cMem('mr')">MR</button>
+        <button class="cb cb-m" onclick="cMem('ms')">MS</button>
+        <button class="cb cb-m" onclick="cMem('mp')">M+</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATISTICS -->
+<section id="panel-stats" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Statistical Analysis</div><div class="p-sub">Full descriptive stats on any data set</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-stats')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-stats">
+      <div class="inf-formula">Enter numbers separated by commas: 10, 20, 15, 30, 25</div>
+      Calculates count, sum, mean, median, mode, min, max, range, variance, and standard deviation (both population and sample). Standard deviation measures volatility — critical for Sharpe Ratio and risk analysis.
+    </div>
+    <div class="field">
+      <label class="field-lbl">Data Set (comma-separated)</label>
+      <textarea class="inp inp-ta" id="stats-data" placeholder="e.g. 14.5, 22, 18.3, 30, 25, 19, 21.5"></textarea>
+    </div>
+    <button class="btn-calc" onclick="calcStats()">Analyse Data</button>
+    <div class="res-box" id="res-stats"></div>
+  </div>
+</section>
+
+<!-- EXPECTED VALUE -->
+<section id="panel-ev" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Expected Value</div><div class="p-sub">Probability-weighted average outcome across scenarios</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-ev')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-ev">
+      <div class="inf-formula">EV = Σ (Probability × Outcome)</div>
+      Probabilities must sum to exactly 1.0 (100%). A positive EV means the strategy is profitable on average over many repetitions. Essential for evaluating trade setups and strategies before committing capital.
+    </div>
+    <div class="ev-labels">
+      <span class="ev-lbl">Probability (0–1)</span>
+      <span class="ev-lbl">Outcome (£)</span>
+      <span></span>
+    </div>
+    <div id="ev-rows"></div>
+    <button class="btn-add-row" onclick="addEvRow()">+ Add Outcome</button>
+    <button class="btn-calc" onclick="calcEV()">Calculate Expected Value</button>
+    <div class="res-box" id="res-ev"></div>
+  </div>
+</section>
+
+<!-- POSITION SIZING -->
+<section id="panel-position" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Position Sizing</div><div class="p-sub">How many units to trade based on your defined risk</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-position')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-position">
+      <div class="inf-formula">Position Size = (Account × Risk%) ÷ |Entry − Stop Loss|</div>
+      The most important risk management tool. Ensures that if your stop loss is hit you lose exactly your planned amount — no more. Professional traders typically risk 0.5–2% per trade. Consistent position sizing protects your account from a single bad trade.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Account Size (£)</label>
+        <input class="inp" id="pos-acc" type="text" placeholder="e.g. 10000" oninput="vh(this,'vh-pos-acc')">
+        <div class="vh" id="vh-pos-acc"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Risk per Trade (%)</label>
+        <input class="inp" id="pos-risk" type="text" placeholder="e.g. 2" oninput="vh(this,'vh-pos-risk')">
+        <div class="vh" id="vh-pos-risk"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Entry Price (£)</label>
+        <input class="inp" id="pos-entry" type="text" placeholder="e.g. 150.00" oninput="vh(this,'vh-pos-entry')">
+        <div class="vh" id="vh-pos-entry"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Stop Loss Price (£)</label>
+        <input class="inp" id="pos-stop" type="text" placeholder="e.g. 145.00" oninput="vh(this,'vh-pos-stop')">
+        <div class="vh" id="vh-pos-stop"></div>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcPosition()">Calculate Position Size</button>
+    <div class="res-box" id="res-position"></div>
+  </div>
+</section>
+
+<!-- RISK / REWARD -->
+<section id="panel-rr" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Risk / Reward Ratio</div><div class="p-sub">Evaluate the quality of a trade setup</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-rr')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-rr">
+      <div class="inf-formula">R:R = |Take Profit − Entry| ÷ |Entry − Stop Loss|</div>
+      A 2:1 R:R means you aim to make £2 for every £1 risked. You can be profitable with a sub-50% win rate if your R:R is strong. Most professional traders require at least 1.5:1 before entering a trade. Use with the Break-even Win Rate calculator to see the minimum win rate you need.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Entry Price (£)</label>
+        <input class="inp" id="rr-entry" type="text" placeholder="e.g. 100.00" oninput="vh(this,'vh-rr-entry')">
+        <div class="vh" id="vh-rr-entry"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Stop Loss (£)</label>
+        <input class="inp" id="rr-stop" type="text" placeholder="e.g. 95.00" oninput="vh(this,'vh-rr-stop')">
+        <div class="vh" id="vh-rr-stop"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Take Profit (£)</label>
+        <input class="inp" id="rr-tp" type="text" placeholder="e.g. 110.00" oninput="vh(this,'vh-rr-tp')">
+        <div class="vh" id="vh-rr-tp"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Direction</label>
+        <select class="inp" id="rr-dir">
+          <option value="long">Long (Buy)</option>
+          <option value="short">Short (Sell)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcRR()">Calculate R:R</button>
+    <div class="res-box" id="res-rr"></div>
+  </div>
+</section>
+
+<!-- DRAWDOWN -->
+<section id="panel-drawdown" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Drawdown Calculator</div><div class="p-sub">Measure loss from peak and recovery needed</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-drawdown')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-drawdown">
+      <div class="inf-formula">Drawdown % = (Trough − Peak) ÷ Peak × 100</div>
+      Shows how far your account has fallen from its highest point. A −20% drawdown requires a +25% gain just to break even. Large drawdowns are psychologically damaging and statistically hard to recover from. Keep max drawdown below 20% as a guideline.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Peak Value (£)</label>
+        <input class="inp" id="dd-peak" type="text" placeholder="e.g. 10000" oninput="vh(this,'vh-dd-peak')">
+        <div class="vh" id="vh-dd-peak"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Current / Trough Value (£)</label>
+        <input class="inp" id="dd-trough" type="text" placeholder="e.g. 8200" oninput="vh(this,'vh-dd-trough')">
+        <div class="vh" id="vh-dd-trough"></div>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcDrawdown()">Calculate Drawdown</button>
+    <div class="res-box" id="res-drawdown"></div>
+  </div>
+</section>
+
+<!-- BREAK-EVEN WIN RATE -->
+<section id="panel-breakeven" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Break-even Win Rate</div><div class="p-sub">Minimum wins needed to stay profitable at a given R:R</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-breakeven')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-breakeven">
+      <div class="inf-formula">Break-even Win Rate = 1 ÷ (1 + R:R Ratio) × 100</div>
+      At a 2:1 R:R you only need to win 33.3% of trades to break even. This is the power of good R:R — it lets you lose more than you win and still be profitable. Combine with Trade Expectancy for a full strategy evaluation.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Risk:Reward Ratio (e.g. enter 2 for 2:1)</label>
+        <input class="inp" id="be-rr" type="text" placeholder="e.g. 2" oninput="vh(this,'vh-be-rr')">
+        <div class="vh" id="vh-be-rr"></div>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcBreakeven()">Calculate Break-even</button>
+    <div class="res-box" id="res-breakeven"></div>
+  </div>
+</section>
+
+<!-- P&L -->
+<section id="panel-pnl" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">P&amp;L Calculator</div><div class="p-sub">Profit and loss on a trade — long or short</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-pnl')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-pnl">
+      <div class="inf-formula">Long P&amp;L = (Exit − Entry) × Qty &nbsp;|&nbsp; Short P&amp;L = (Entry − Exit) × Qty</div>
+      Calculates the absolute gain or loss and the percentage return on your invested capital. Works for both long (buy first, sell later) and short (sell first, buy later) positions.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Entry Price (£)</label>
+        <input class="inp" id="pnl-entry" type="text" placeholder="e.g. 100.00" oninput="vh(this,'vh-pnl-entry')">
+        <div class="vh" id="vh-pnl-entry"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Exit Price (£)</label>
+        <input class="inp" id="pnl-exit" type="text" placeholder="e.g. 115.00" oninput="vh(this,'vh-pnl-exit')">
+        <div class="vh" id="vh-pnl-exit"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Quantity / Units</label>
+        <input class="inp" id="pnl-qty" type="text" placeholder="e.g. 100" oninput="vh(this,'vh-pnl-qty')">
+        <div class="vh" id="vh-pnl-qty"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Direction</label>
+        <select class="inp" id="pnl-dir">
+          <option value="long">Long (Buy)</option>
+          <option value="short">Short (Sell)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcPnL()">Calculate P&amp;L</button>
+    <div class="res-box" id="res-pnl"></div>
+  </div>
+</section>
+
+<!-- TRADE EXPECTANCY -->
+<section id="panel-expectancy" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Trade Expectancy</div><div class="p-sub">Expected profit per £1 risked across your strategy</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-expectancy')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-expectancy">
+      <div class="inf-formula">Expectancy = (Win Rate × Avg Win) − (Loss Rate × Avg Loss)</div>
+      The single most important metric for evaluating a trading strategy. A positive expectancy means you are profitable over a large sample of trades. For example +£0.50 means on average you earn 50p per pound risked — regardless of any single trade outcome.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Win Rate (%)</label>
+        <input class="inp" id="exp-wr" type="text" placeholder="e.g. 55" oninput="vh(this,'vh-exp-wr')">
+        <div class="vh" id="vh-exp-wr"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Average Win (£)</label>
+        <input class="inp" id="exp-win" type="text" placeholder="e.g. 200" oninput="vh(this,'vh-exp-win')">
+        <div class="vh" id="vh-exp-win"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Average Loss (£)</label>
+        <input class="inp" id="exp-loss" type="text" placeholder="e.g. 100" oninput="vh(this,'vh-exp-loss')">
+        <div class="vh" id="vh-exp-loss"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Number of Trades (optional)</label>
+        <input class="inp" id="exp-trades" type="text" placeholder="e.g. 100">
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcExpectancy()">Calculate Expectancy</button>
+    <div class="res-box" id="res-expectancy"></div>
+  </div>
+</section>
+
+<!-- KELLY CRITERION -->
+<section id="panel-kelly" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Kelly Criterion</div><div class="p-sub">Mathematically optimal bet size for maximum long-run growth</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-kelly')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-kelly">
+      <div class="inf-formula">f* = (b × p − q) ÷ b &nbsp;&nbsp; where q = 1 − p</div>
+      b = win/loss ratio (avg win ÷ avg loss), p = win probability. The result is the fraction of capital to risk per trade for maximum long-run growth. Most professionals use Half-Kelly (f* ÷ 2) to reduce volatility. Never apply full Kelly without a large, reliable sample of at least 100+ trades.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Win Probability (e.g. 0.55 = 55%)</label>
+        <input class="inp" id="kelly-p" type="text" placeholder="e.g. 0.55" oninput="vh(this,'vh-kelly-p')">
+        <div class="vh" id="vh-kelly-p"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Win/Loss Ratio (Avg Win ÷ Avg Loss)</label>
+        <input class="inp" id="kelly-b" type="text" placeholder="e.g. 2.0" oninput="vh(this,'vh-kelly-b')">
+        <div class="vh" id="vh-kelly-b"></div>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcKelly()">Calculate Kelly %</button>
+    <div class="res-box" id="res-kelly"></div>
+  </div>
+</section>
+
+<!-- ROI -->
+<section id="panel-roi" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">ROI Calculator</div><div class="p-sub">Return on investment as a percentage</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-roi')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-roi">
+      <div class="inf-formula">ROI = (Final − Initial) ÷ Initial × 100</div>
+      Measures the total percentage return relative to your original investment. Does not account for time — use CAGR for time-adjusted comparisons. Useful for quickly comparing two investments on an absolute basis.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Initial Investment (£)</label>
+        <input class="inp" id="roi-init" type="text" placeholder="e.g. 5000" oninput="vh(this,'vh-roi-init')">
+        <div class="vh" id="vh-roi-init"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Final Value (£)</label>
+        <input class="inp" id="roi-final" type="text" placeholder="e.g. 7500" oninput="vh(this,'vh-roi-final')">
+        <div class="vh" id="vh-roi-final"></div>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcROI()">Calculate ROI</button>
+    <div class="res-box" id="res-roi"></div>
+  </div>
+</section>
+
+<!-- COMPOUND INTEREST -->
+<section id="panel-compound" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Compound Interest</div><div class="p-sub">The power of reinvesting returns over time</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-compound')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-compound">
+      <div class="inf-formula">A = P × (1 + r/n)^(n×t)</div>
+      P = principal, r = annual rate (decimal), n = compounds per year, t = years. Compounding is why long-term investing works — your returns generate their own returns. The difference between monthly and annual compounding can be significant over a decade.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Principal (£)</label>
+        <input class="inp" id="ci-p" type="text" placeholder="e.g. 10000" oninput="vh(this,'vh-ci-p')">
+        <div class="vh" id="vh-ci-p"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Annual Rate (%)</label>
+        <input class="inp" id="ci-r" type="text" placeholder="e.g. 8" oninput="vh(this,'vh-ci-r')">
+        <div class="vh" id="vh-ci-r"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Time (years)</label>
+        <input class="inp" id="ci-t" type="text" placeholder="e.g. 10" oninput="vh(this,'vh-ci-t')">
+        <div class="vh" id="vh-ci-t"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Compounding Frequency</label>
+        <select class="inp" id="ci-n">
+          <option value="1">Annually (1×)</option>
+          <option value="2">Semi-annually (2×)</option>
+          <option value="4">Quarterly (4×)</option>
+          <option value="12" selected>Monthly (12×)</option>
+          <option value="52">Weekly (52×)</option>
+          <option value="365">Daily (365×)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcCompound()">Calculate</button>
+    <div class="res-box" id="res-compound"></div>
+  </div>
+</section>
+
+<!-- SHARPE RATIO -->
+<section id="panel-sharpe" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Sharpe Ratio</div><div class="p-sub">Risk-adjusted return — how much return per unit of risk</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-sharpe')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-sharpe">
+      <div class="inf-formula">Sharpe = (Portfolio Return − Risk-free Rate) ÷ Std Dev of Returns</div>
+      Benchmarks: &lt;0 = losing vs risk-free, 0–1 = below average, 1–2 = acceptable, 2–3 = good, &gt;3 = excellent. The risk-free rate in the UK is typically approximated using the Bank of England base rate or gilt yield (~4.5% in 2024). Most hedge funds target a Sharpe above 1.5.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Portfolio Return (%)</label>
+        <input class="inp" id="sh-ret" type="text" placeholder="e.g. 18" oninput="vh(this,'vh-sh-ret')">
+        <div class="vh" id="vh-sh-ret"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Risk-free Rate (%) e.g. gilt yield</label>
+        <input class="inp" id="sh-rf" type="text" placeholder="e.g. 4.5" oninput="vh(this,'vh-sh-rf')">
+        <div class="vh" id="vh-sh-rf"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Std Dev of Returns (%)</label>
+        <input class="inp" id="sh-sd" type="text" placeholder="e.g. 12" oninput="vh(this,'vh-sh-sd')">
+        <div class="vh" id="vh-sh-sd"></div>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcSharpe()">Calculate Sharpe Ratio</button>
+    <div class="res-box" id="res-sharpe"></div>
+  </div>
+</section>
+
+<!-- CAGR -->
+<section id="panel-cagr" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">CAGR</div><div class="p-sub">Compound Annual Growth Rate — smoothed yearly return</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-cagr')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-cagr">
+      <div class="inf-formula">CAGR = (Final ÷ Initial) ^ (1 ÷ Years) − 1</div>
+      The constant annual growth rate that would produce the same final value as the actual investment. Unlike average return, CAGR accounts for compounding and gives a more accurate picture of investment performance over time.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Initial Value (£)</label>
+        <input class="inp" id="cagr-i" type="text" placeholder="e.g. 10000" oninput="vh(this,'vh-cagr-i')">
+        <div class="vh" id="vh-cagr-i"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Final Value (£)</label>
+        <input class="inp" id="cagr-f" type="text" placeholder="e.g. 18000" oninput="vh(this,'vh-cagr-f')">
+        <div class="vh" id="vh-cagr-f"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Number of Years</label>
+        <input class="inp" id="cagr-y" type="text" placeholder="e.g. 5" oninput="vh(this,'vh-cagr-y')">
+        <div class="vh" id="vh-cagr-y"></div>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcCAGR()">Calculate CAGR</button>
+    <div class="res-box" id="res-cagr"></div>
+  </div>
+</section>
+
+<!-- LEVERAGE & MARGIN -->
+<section id="panel-leverage" class="panel">
+  <div class="card">
+    <div class="p-head">
+      <div><div class="p-title">Leverage &amp; Margin</div><div class="p-sub">Understand your real exposure and margin requirements</div></div>
+      <button class="btn-info" onclick="toggleInf('inf-leverage')">ⓘ</button>
+    </div>
+    <div class="inf-box" id="inf-leverage">
+      <div class="inf-formula">Leverage = Position Value ÷ Margin &nbsp;|&nbsp; Margin = Position Value ÷ Leverage</div>
+      Leverage amplifies both gains and losses. At 10:1 leverage, a 1% move in the underlying = a 10% move on your margin. Always know what % of your account is at risk. Over-leveraging is the single most common cause of blown accounts. Never use more leverage than you can psychologically handle during a drawdown.
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-lbl">Total Position Value (£)</label>
+        <input class="inp" id="lev-pos" type="text" placeholder="e.g. 50000" oninput="vh(this,'vh-lev-pos')">
+        <div class="vh" id="vh-lev-pos"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Margin / Capital Used (£)</label>
+        <input class="inp" id="lev-margin" type="text" placeholder="e.g. 5000" oninput="vh(this,'vh-lev-margin')">
+        <div class="vh" id="vh-lev-margin"></div>
+      </div>
+      <div class="field">
+        <label class="field-lbl">Account Size (£)</label>
+        <input class="inp" id="lev-acc" type="text" placeholder="e.g. 10000" oninput="vh(this,'vh-lev-acc')">
+        <div class="vh" id="vh-lev-acc"></div>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcLeverage()">Calculate</button>
+    <div class="res-box" id="res-leverage"></div>
+  </div>
+</section>
+
+</main>
+
+<!-- ── Right Panel ── -->
+<aside class="rp">
+  <div class="rp-tabs">
+    <button class="rp-tab act" onclick="showRpTab('rp-vars',this)">Variables</button>
+    <button class="rp-tab" onclick="showRpTab('rp-hist',this)">History</button>
+  </div>
+  <div id="rp-vars" class="rp-body">
+    <div class="var-add">
+      <div class="var-add-row">
+        <input class="inp" id="var-name" placeholder="name (e.g. capital)" maxlength="20" style="flex:1">
+      </div>
+      <div class="var-add-row">
+        <input class="inp" id="var-val" placeholder="value" type="number" style="flex:1">
+        <button class="btn-save" onclick="addVar()">Save</button>
+      </div>
+    </div>
+    <div class="var-tip">Type any variable name into a calculator field instead of a number. It will be resolved automatically.</div>
+    <div id="var-list"></div>
+  </div>
+  <div id="rp-hist" class="rp-body" style="display:none">
+    <div class="hist-hd">
+      <span class="hist-count" id="hist-count">0 calculations</span>
+      <button class="btn-clr" onclick="clearHist()">Clear all</button>
+    </div>
+    <div id="hist-list"></div>
+  </div>
+</aside>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Storage ──
+const SK = 'fincalc_v2';
+const S = { vars:{}, hist:[], dark:false };
+
+function loadS() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SK)||'{}');
+    S.vars = d.vars||{}; S.hist = d.hist||[]; S.dark = !!d.dark;
+  } catch(e) { /* localStorage unavailable */ }
+}
+
+function saveS() {
+  try {
+    localStorage.setItem(SK, JSON.stringify({ vars:S.vars, hist:S.hist.slice(0,100), dark:S.dark }));
+  } catch(e) { /* quota exceeded or unavailable */ }
+}
+
+// ── Theme ──
+function setTheme(dark) {
+  S.dark = dark;
+  document.body.classList.toggle('dark', dark);
+  saveS();
+}
+
+// ── Navigation ──
+let activePanel = 'basic';
+function showPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('act'));
+  document.getElementById('panel-'+id).classList.add('act');
+  el.classList.add('act');
+  activePanel = id;
+}
+
+function showRpTab(id, el) {
+  document.querySelectorAll('.rp-body').forEach(b => b.style.display='none');
+  document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('act'));
+  document.getElementById(id).style.display='block';
+  el.classList.add('act');
+}
+
+function toggleInf(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ── Basic Calculator ──
+const C = { disp:'0', stored:null, op:null, fresh:true, mem:0 };
+
+function updDisp() {
+  const n = document.getElementById('calcNum');
+  const e = document.getElementById('calcExpr');
+  const m = document.getElementById('calcMemInd');
+  n.textContent = C.disp;
+  e.textContent = C.op ? (fmtDisp(C.stored) + ' ' + C.op) : '';
+  m.textContent = C.mem !== 0 ? 'M: ' + fmtDisp(C.mem) : '';
+}
+
+function fmtDisp(n) {
+  if (!isFinite(n)) return 'Error';
+  const r = parseFloat(n.toPrecision(12));
+  if (Math.abs(r) >= 1e13 || (Math.abs(r) < 1e-7 && r !== 0)) return r.toExponential(4);
+  return r.toString();
+}
+
+function cDig(d) {
+  if (C.fresh) {
+    C.disp = d === '.' ? '0.' : d;
+    C.fresh = false;
+  } else {
+    if (d === '.' && C.disp.includes('.')) return;
+    if (C.disp.replace('-','').length >= 14) return;
+    C.disp = C.disp === '0' && d !== '.' ? d : C.disp + d;
+  }
+  updDisp();
+}
+
+function cOp(op) {
+  const cur = parseFloat(C.disp);
+  if (isNaN(cur)) return;
+  if (C.stored !== null && !C.fresh) {
+    const res = evaluate(C.stored, cur, C.op);
+    if (res === null) { C.disp = 'Error'; C.stored = null; C.op = null; C.fresh = true; updDisp(); return; }
+    C.disp = fmtDisp(res); C.stored = res;
+  } else {
+    C.stored = cur;
+  }
+  C.op = op; C.fresh = true; updDisp();
+}
+
+function cEq() {
+  const cur = parseFloat(C.disp);
+  if (isNaN(cur) || C.stored === null || !C.op) return;
+  const res = evaluate(C.stored, cur, C.op);
+  if (res === null) { C.disp = 'Error'; }
+  else {
+    C.disp = fmtDisp(res);
+    addHist('Basic Calc', fmtDisp(C.stored)+' '+C.op+' '+fmtDisp(cur), fmtDisp(res));
+  }
+  C.stored = null; C.op = null; C.fresh = true; updDisp();
+}
+
+function evaluate(a, b, op) {
+  switch(op) {
+    case '+': return a + b;
+    case '−': return a - b;
+    case '×': return a * b;
+    case '÷': return b === 0 ? null : a / b;
+    default: return null;
+  }
+}
+
+function cFn(fn) {
+  const cur = parseFloat(C.disp);
+  switch(fn) {
+    case 'clear': C.disp='0'; C.stored=null; C.op=null; C.fresh=true; break;
+    case 'negate': if(!isNaN(cur) && cur!==0) C.disp = fmtDisp(-cur); break;
+    case 'pct': if(!isNaN(cur)) C.disp = fmtDisp(cur/100); break;
+    case 'sqrt':
+      if(isNaN(cur)||cur<0){C.disp='Error';C.fresh=true;}
+      else C.disp=fmtDisp(Math.sqrt(cur));
+      break;
+    case 'sq': if(!isNaN(cur)) C.disp=fmtDisp(cur*cur); break;
+    case 'inv':
+      if(isNaN(cur)||cur===0){C.disp='Error';C.fresh=true;}
+      else C.disp=fmtDisp(1/cur);
+      break;
+    case 'back':
+      if(C.disp.length>1&&!C.fresh){C.disp=C.disp.slice(0,-1);if(C.disp==='-')C.disp='0';}
+      else C.disp='0';
+      break;
+  }
+  C.fresh = true; updDisp();
+}
+
+function cMem(op) {
+  const cur = parseFloat(C.disp);
+  switch(op) {
+    case 'mc': C.mem=0; break;
+    case 'mr': C.disp=fmtDisp(C.mem); C.fresh=true; break;
+    case 'ms': if(!isNaN(cur)) C.mem=cur; break;
+    case 'mp': if(!isNaN(cur)) C.mem+=cur; break;
+  }
+  updDisp();
+}
+
+// Keyboard support for basic calculator
+document.addEventListener('keydown', function(e) {
+  const tag = document.activeElement.tagName;
+  if (tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  if (activePanel !== 'basic') return;
+  if (e.key>='0'&&e.key<='9') cDig(e.key);
+  else if (e.key==='.') cDig('.');
+  else if (e.key==='+') cOp('+');
+  else if (e.key==='-') cOp('−');
+  else if (e.key==='*') cOp('×');
+  else if (e.key==='/') { e.preventDefault(); cOp('÷'); }
+  else if (e.key==='Enter'||e.key==='=') cEq();
+  else if (e.key==='Escape') cFn('clear');
+  else if (e.key==='Backspace') cFn('back');
+});
+
+// ── Statistics ──
+function calcStats() {
+  const raw = document.getElementById('stats-data').value;
+  const vals = raw.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n));
+  if (vals.length < 2) return showErr('stats','Enter at least 2 comma-separated numbers');
+
+  const n = vals.length;
+  const sum = vals.reduce((a,b)=>a+b,0);
+  const mean = sum/n;
+  const sorted = [...vals].sort((a,b)=>a-b);
+  const median = n%2===0 ? (sorted[n/2-1]+sorted[n/2])/2 : sorted[Math.floor(n/2)];
+
+  const freq = {};
+  vals.forEach(v=>{ freq[v]=(freq[v]||0)+1; });
+  const maxF = Math.max(...Object.values(freq));
+  const mode = maxF===1 ? 'No mode' : Object.keys(freq).filter(k=>freq[k]===maxF).join(', ');
+
+  const varPop = vals.reduce((a,v)=>a+(v-mean)**2,0)/n;
+  const varSam = vals.reduce((a,v)=>a+(v-mean)**2,0)/(n-1);
+  const sdPop = Math.sqrt(varPop);
+  const sdSam = Math.sqrt(varSam);
+
+  showRes('stats', rr([
+    ['Count', n],
+    ['Sum', f4(sum)],
+    ['Mean (Average)', f4(mean), true],
+    ['Median', f4(median), true],
+    ['Mode', mode],
+    ['Min', f4(sorted[0])],
+    ['Max', f4(sorted[n-1])],
+    ['Range', f4(sorted[n-1]-sorted[0])],
+    ['Variance (Population)', f4(varPop)],
+    ['Variance (Sample)', f4(varSam)],
+    ['Std Dev (Population)', f4(sdPop), true],
+    ['Std Dev (Sample)', f4(sdSam), true],
+  ], 'Standard deviation measures spread/volatility. Lower = more consistent. Population std dev used when data is the entire set; sample std dev when data is a sample from a larger population.'));
+
+  addHist('Statistics', n+' values, mean='+f4(mean), 'σ='+f4(sdSam));
+}
+
+// ── Expected Value ──
+let evId = 0;
+function addEvRow() {
+  const id = 'evr-'+(++evId);
+  const row = document.createElement('div');
+  row.className = 'ev-row'; row.id = id;
+  row.innerHTML =
+    '<input class="inp" type="text" placeholder="0.4" style="text-align:center">'+
+    '<input class="inp" type="text" placeholder="500">'+
+    '<button class="btn-rm" onclick="rmEvRow(\''+id+'\')">×</button>';
+  document.getElementById('ev-rows').appendChild(row);
+}
+
+function rmEvRow(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function calcEV() {
+  const rows = document.querySelectorAll('#ev-rows .ev-row');
+  if (rows.length === 0) return showErr('ev','Add at least one outcome');
+
+  const outcomes = [];
+  for (const row of rows) {
+    const inps = row.querySelectorAll('input');
+    const p = resolve(inps[0].value);
+    const v = resolve(inps[1].value);
+    if (isNaN(p)||isNaN(v)) return showErr('ev','All probabilities and values must be valid numbers');
+    if (p<0||p>1) return showErr('ev','Probabilities must be between 0 and 1');
+    outcomes.push({p,v});
+  }
+
+  const totalP = outcomes.reduce((a,o)=>a+o.p,0);
+  if (Math.abs(totalP-1)>0.0001) return showErr('ev','Probabilities must sum to 1.0 (currently '+f4(totalP)+')');
+
+  const ev = outcomes.reduce((a,o)=>a+o.p*o.v,0);
+  const note = ev>0
+    ? 'Positive EV of £'+f4(ev)+' — this scenario is profitable on average over many trials.'
+    : ev<0
+    ? 'Negative EV of £'+f4(ev)+' — this scenario loses money on average. Reconsider the trade.'
+    : 'EV of zero — this is a break-even scenario.';
+
+  showRes('ev', rr([
+    ['Expected Value', '£'+f4(ev), true],
+    ['Number of Outcomes', outcomes.length],
+    ['Sum of Probabilities', f4(totalP)],
+  ], note));
+
+  addHist('Expected Value', outcomes.length+' outcomes', 'EV = £'+f4(ev));
+}
+
+// ── Position Sizing ──
+function calcPosition() {
+  const acc = resolve(val('pos-acc'));
+  const risk = resolve(val('pos-risk'));
+  const entry = resolve(val('pos-entry'));
+  const stop = resolve(val('pos-stop'));
+
+  if ([acc,risk,entry,stop].some(isNaN)) return showErr('position','All fields required');
+  if (acc<=0) return showErr('position','Account size must be positive');
+  if (risk<=0||risk>100) return showErr('position','Risk must be between 0 and 100%');
+  if (entry<=0) return showErr('position','Entry price must be positive');
+  if (entry===stop) return showErr('position','Entry and stop loss cannot be the same price');
+
+  const riskAmt = acc*(risk/100);
+  const diff = Math.abs(entry-stop);
+  const size = riskAmt/diff;
+  const posVal = size*entry;
+  const slPct = (diff/entry)*100;
+
+  showRes('position', rr([
+    ['Risk Amount (£)', '£'+f2(riskAmt), true],
+    ['Position Size (units)', f4(size), true],
+    ['Position Value (£)', '£'+f2(posVal)],
+    ['Stop Distance (£)', '£'+f4(diff)],
+    ['Stop Distance (%)', f2(slPct)+'%'],
+    ['Capital at Risk', f2(risk)+'% of account'],
+  ], 'If your stop loss is hit you will lose exactly £'+f2(riskAmt)+'. Position size calculated to enforce strict '+f2(risk)+'% risk rule.'));
+
+  addHist('Position Sizing', '£'+f2(acc)+' acc, '+f2(risk)+'% risk', size.toFixed(2)+' units');
+}
+
+// ── Risk / Reward ──
+function calcRR() {
+  const entry = resolve(val('rr-entry'));
+  const stop = resolve(val('rr-stop'));
+  const tp = resolve(val('rr-tp'));
+  const dir = document.getElementById('rr-dir').value;
+
+  if ([entry,stop,tp].some(isNaN)) return showErr('rr','All fields required');
+  if (entry<=0||stop<=0||tp<=0) return showErr('rr','All prices must be positive');
+
+  const risk = dir==='long' ? entry-stop : stop-entry;
+  const reward = dir==='long' ? tp-entry : entry-tp;
+
+  if (risk<=0) return showErr('rr','Stop loss is on the wrong side of entry for a '+(dir==='long'?'long (stop must be below entry)':'short (stop must be above entry)'));
+  if (reward<=0) return showErr('rr','Take profit is on the wrong side of entry for a '+(dir==='long'?'long (TP must be above entry)':'short (TP must be below entry)'));
+
+  const ratio = reward/risk;
+  const beWR = (1/(1+ratio))*100;
+  const riskPct = (risk/entry)*100;
+  const rewPct = (reward/entry)*100;
+
+  const qual = ratio>=3?'Excellent setup':ratio>=2?'Good setup':ratio>=1.5?'Acceptable setup':ratio>=1?'Marginal — consider skipping':'Poor R:R — avoid this trade';
+
+  showRes('rr', rr([
+    ['R:R Ratio', f2(ratio)+':1', true],
+    ['Risk (£ per unit)', '£'+f4(risk)],
+    ['Reward (£ per unit)', '£'+f4(reward)],
+    ['Risk (%)', f2(riskPct)+'%'],
+    ['Reward (%)', f2(rewPct)+'%'],
+    ['Break-even Win Rate', f1(beWR)+'%'],
+  ], qual+'. You need to win more than '+f1(beWR)+'% of trades with this setup to be profitable.'));
+
+  addHist('Risk/Reward', dir+' entry £'+f4(entry)+' SL £'+f4(stop)+' TP £'+f4(tp), f2(ratio)+':1');
+}
+
+// ── Drawdown ──
+function calcDrawdown() {
+  const peak = resolve(val('dd-peak'));
+  const trough = resolve(val('dd-trough'));
+
+  if ([peak,trough].some(isNaN)) return showErr('drawdown','Both fields required');
+  if (peak<=0) return showErr('drawdown','Peak must be positive');
+  if (trough>peak) return showErr('drawdown','Trough cannot be higher than peak');
+
+  const dd = ((trough-peak)/peak)*100;
+  const loss = peak-trough;
+  const recPct = (loss/trough)*100;
+
+  const severity = Math.abs(dd)<=5?'Minor drawdown':Math.abs(dd)<=15?'Moderate drawdown':Math.abs(dd)<=25?'Significant drawdown — review your risk management':Math.abs(dd)<=50?'Severe drawdown — immediate review required':'Critical drawdown — account in danger';
+
+  showRes('drawdown', rr([
+    ['Drawdown', f2(dd)+'%', true],
+    ['Value Lost (£)', '£'+f2(loss)],
+    ['Recovery Needed', '+'+f2(recPct)+'%', true],
+    ['Peak Value', '£'+f2(peak)],
+    ['Current Value', '£'+f2(trough)],
+  ], severity+'. To recover from a '+f2(Math.abs(dd))+'% drawdown you need a '+f2(recPct)+'% gain from current levels.'), true, dd<0);
+
+  addHist('Drawdown', 'Peak £'+f2(peak)+' → £'+f2(trough), f2(dd)+'%');
+}
+
+// ── Break-even Win Rate ──
+function calcBreakeven() {
+  const rrVal = resolve(val('be-rr'));
+  if (isNaN(rrVal)) return showErr('breakeven','Enter a valid R:R ratio');
+  if (rrVal<=0) return showErr('breakeven','R:R must be greater than 0');
+
+  const beWR = (1/(1+rrVal))*100;
+  const surplus = 50-beWR;
+
+  showRes('breakeven', rr([
+    ['Break-even Win Rate', f1(beWR)+'%', true],
+    ['At your R:R of', rrVal+':1'],
+    ['Win Rate Surplus (vs 50%)', (surplus>=0?'+':'')+f1(surplus)+'%'],
+  ], surplus>0
+    ? 'At '+f1(beWR)+'% break-even, even a 50% win rate gives you a '+f1(surplus)+'% buffer. Focus on execution consistency.'
+    : 'You need a win rate above 50% ('+f1(beWR)+'%) to be profitable at this R:R. Consider improving your R:R.'));
+
+  addHist('Break-even Win Rate', 'R:R = '+rrVal+':1', f1(beWR)+'% min win rate');
+}
+
+// ── P&L ──
+function calcPnL() {
+  const entry = resolve(val('pnl-entry'));
+  const exit = resolve(val('pnl-exit'));
+  const qty = resolve(val('pnl-qty'));
+  const dir = document.getElementById('pnl-dir').value;
+
+  if ([entry,exit,qty].some(isNaN)) return showErr('pnl','All fields required');
+  if (entry<=0||exit<=0) return showErr('pnl','Prices must be positive');
+  if (qty<=0) return showErr('pnl','Quantity must be positive');
+
+  const pnl = dir==='long' ? (exit-entry)*qty : (entry-exit)*qty;
+  const invested = entry*qty;
+  const pct = (pnl/invested)*100;
+  const isProfit = pnl>=0;
+
+  showRes('pnl', rr([
+    ['P&L', (isProfit?'+':'')+'£'+f2(Math.abs(pnl)), true],
+    ['Return', (isProfit?'+':'')+f2(pct)+'%', true],
+    ['Direction', dir.charAt(0).toUpperCase()+dir.slice(1)],
+    ['Invested Capital', '£'+f2(invested)],
+    ['Entry Value', '£'+f4(entry)+' × '+qty+' units'],
+    ['Exit Value', '£'+f4(exit)+' × '+qty+' units'],
+  ], isProfit ? 'Profitable trade. Net gain of £'+f2(pnl)+' on £'+f2(invested)+' invested.' : 'Losing trade. Net loss of £'+f2(Math.abs(pnl))+' on £'+f2(invested)+' invested. Review your stop loss discipline.'),
+  false, !isProfit);
+
+  addHist('P&L', dir+' '+qty+'× £'+f4(entry)+' → £'+f4(exit), (isProfit?'+':'')+'£'+f2(pnl));
+}
+
+// ── Trade Expectancy ──
+function calcExpectancy() {
+  const wr = resolve(val('exp-wr'));
+  const avgWin = resolve(val('exp-win'));
+  const avgLoss = resolve(val('exp-loss'));
+  const trades = val('exp-trades') ? resolve(val('exp-trades')) : null;
+
+  if ([wr,avgWin,avgLoss].some(isNaN)) return showErr('expectancy','Win rate, avg win and avg loss are required');
+  if (wr<0||wr>100) return showErr('expectancy','Win rate must be between 0 and 100');
+  if (avgWin<=0||avgLoss<=0) return showErr('expectancy','Win and loss values must be positive');
+
+  const lossRate = 1-(wr/100);
+  const exp = ((wr/100)*avgWin)-(lossRate*avgLoss);
+  const rrImpl = avgWin/avgLoss;
+
+  const rows = [
+    ['Expectancy per Trade', (exp>=0?'+':'')+'£'+f2(exp), true],
+    ['Win Rate', f1(wr)+'%'],
+    ['Loss Rate', f1(lossRate*100)+'%'],
+    ['Avg Win / Avg Loss Ratio', f2(rrImpl)+':1'],
+  ];
+
+  if (trades && !isNaN(trades) && trades>0) {
+    rows.push(['Expected over '+Math.round(trades)+' trades', (exp>=0?'+':'')+'£'+f2(exp*trades), true]);
+  }
+
+  const note = exp>0
+    ? 'Positive expectancy of £'+f2(exp)+' per trade. This strategy is profitable over a large sample. Stay consistent and let the edge work.'
+    : exp<0
+    ? 'Negative expectancy of £'+f2(exp)+' per trade. This strategy loses money over time. Improve your win rate or average win.'
+    : 'Zero expectancy — break-even strategy. Not worth the risk. Seek a higher edge.';
+
+  showRes('expectancy', rr(rows, note), exp<0);
+
+  addHist('Trade Expectancy', f1(wr)+'% WR, avg win £'+f2(avgWin)+', avg loss £'+f2(avgLoss), (exp>=0?'+':'')+'£'+f2(exp)+'/trade');
+}
+
+// ── Kelly Criterion ──
+function calcKelly() {
+  const p = resolve(val('kelly-p'));
+  const b = resolve(val('kelly-b'));
+
+  if ([p,b].some(isNaN)) return showErr('kelly','Both fields required');
+  if (p<=0||p>=1) return showErr('kelly','Win probability must be between 0 and 1 (exclusive)');
+  if (b<=0) return showErr('kelly','Win/loss ratio must be positive');
+
+  const q = 1-p;
+  const f = ((b*p)-q)/b;
+  const half = f/2;
+
+  const note = f<=0
+    ? 'Negative Kelly ('+f2(f*100)+'%) — no statistical edge exists with these parameters. Do not trade this setup.'
+    : f>0.5
+    ? 'Full Kelly of '+f2(f*100)+'% — extremely aggressive. Use Half-Kelly ('+f2(half*100)+'%) or Quarter-Kelly in practice. Full Kelly can cause catastrophic losses from variance.'
+    : 'Half-Kelly of '+f2(half*100)+'% of capital per trade is recommended for real-world application. Full Kelly maximises growth rate but with very high drawdown risk.';
+
+  showRes('kelly', rr([
+    ['Kelly % (Full)', f<=0 ? 'No edge' : f2(f*100)+'%', true],
+    ['Half-Kelly (Recommended)', f<=0 ? 'No edge' : f2(half*100)+'%', true],
+    ['Win Probability', f2(p*100)+'%'],
+    ['Win/Loss Ratio', f2(b)+':1'],
+    ['Edge', f<=0 ? 'Negative' : f2(f*100)+'%'],
+  ], note), f<=0);
+
+  addHist('Kelly Criterion', 'p='+f2(p*100)+'%, b='+f2(b), f<=0?'No edge':'Kelly='+f2(f*100)+'%');
+}
+
+// ── ROI ──
+function calcROI() {
+  const init = resolve(val('roi-init'));
+  const fin = resolve(val('roi-final'));
+
+  if ([init,fin].some(isNaN)) return showErr('roi','Both fields required');
+  if (init<=0) return showErr('roi','Initial investment must be positive');
+
+  const roi = ((fin-init)/init)*100;
+  const abs = fin-init;
+
+  showRes('roi', rr([
+    ['ROI', (roi>=0?'+':'')+f2(roi)+'%', true],
+    ['Absolute Gain/Loss', (abs>=0?'+£':'-£')+f2(Math.abs(abs)), true],
+    ['Initial', '£'+f2(init)],
+    ['Final', '£'+f2(fin)],
+    ['Multiplier', f3(fin/init)+'×'],
+  ], roi>=0 ? 'Gained '+f2(roi)+'% (£'+f2(abs)+'). Use CAGR to compare time-adjusted returns.' : 'Lost '+f2(Math.abs(roi))+'% (£'+f2(Math.abs(abs))+').'), false, roi<0);
+
+  addHist('ROI', '£'+f2(init)+' → £'+f2(fin), (roi>=0?'+':'')+f2(roi)+'%');
+}
+
+// ── Compound Interest ──
+function calcCompound() {
+  const p = resolve(val('ci-p'));
+  const r = resolve(val('ci-r'));
+  const t = resolve(val('ci-t'));
+  const n = parseInt(document.getElementById('ci-n').value);
+
+  if ([p,r,t].some(isNaN)) return showErr('compound','Principal, rate and time are required');
+  if (p<=0) return showErr('compound','Principal must be positive');
+  if (r<=0) return showErr('compound','Rate must be positive');
+  if (t<=0) return showErr('compound','Time must be positive');
+
+  const rate = r/100;
+  const A = p*Math.pow(1+(rate/n),n*t);
+  const interest = A-p;
+  const totalGrowth = (interest/p)*100;
+  const simpleInt = p*rate*t;
+  const compoundBenefit = interest-simpleInt;
+
+  showRes('compound', rr([
+    ['Final Amount', '£'+f2(A), true],
+    ['Total Interest Earned', '£'+f2(interest), true],
+    ['Total Growth', '+'+f2(totalGrowth)+'%'],
+    ['vs Simple Interest', '£'+f2(simpleInt)],
+    ['Compounding Benefit', '+£'+f2(compoundBenefit)],
+    ['Principal', '£'+f2(p)],
+  ], 'At '+r+'% compounded '+getFreqLabel(n)+' for '+t+' years, £'+f2(p)+' grows to £'+f2(A)+'. Compounding adds an extra £'+f2(compoundBenefit)+' over simple interest.'));
+
+  addHist('Compound Interest', '£'+f2(p)+' @ '+r+'% for '+t+'yr', '£'+f2(A));
+}
+
+function getFreqLabel(n) {
+  return {1:'annually',2:'semi-annually',4:'quarterly',12:'monthly',52:'weekly',365:'daily'}[n]||n+'×/year';
+}
+
+// ── Sharpe Ratio ──
+function calcSharpe() {
+  const ret = resolve(val('sh-ret'));
+  const rf = resolve(val('sh-rf'));
+  const sd = resolve(val('sh-sd'));
+
+  if ([ret,rf,sd].some(isNaN)) return showErr('sharpe','All three fields required');
+  if (sd<=0) return showErr('sharpe','Standard deviation must be positive');
+
+  const sharpe = (ret-rf)/sd;
+  const excess = ret-rf;
+
+  const qual = sharpe<0?'Poor — underperforming risk-free rate':
+               sharpe<1?'Below average — insufficient risk-adjusted return':
+               sharpe<2?'Acceptable — reasonable risk-adjusted return':
+               sharpe<3?'Good — strong risk-adjusted performance':
+               'Excellent — exceptional risk-adjusted return';
+
+  showRes('sharpe', rr([
+    ['Sharpe Ratio', f2(sharpe), true],
+    ['Excess Return', f2(excess)+'%'],
+    ['Portfolio Return', f2(ret)+'%'],
+    ['Risk-free Rate', f2(rf)+'%'],
+    ['Std Dev (Risk)', f2(sd)+'%'],
+  ], qual+'. Benchmarks: <0 poor, 0–1 below average, 1–2 acceptable, 2–3 good, >3 excellent. Most hedge funds target 1.5+.'), sharpe<1);
+
+  addHist('Sharpe Ratio', ret+'% return, '+rf+'% risk-free, σ='+sd+'%', 'Sharpe='+f2(sharpe));
+}
+
+// ── CAGR ──
+function calcCAGR() {
+  const init = resolve(val('cagr-i'));
+  const fin = resolve(val('cagr-f'));
+  const yrs = resolve(val('cagr-y'));
+
+  if ([init,fin,yrs].some(isNaN)) return showErr('cagr','All fields required');
+  if (init<=0) return showErr('cagr','Initial value must be positive');
+  if (fin<=0) return showErr('cagr','Final value must be positive');
+  if (yrs<=0) return showErr('cagr','Years must be positive');
+
+  const cagr = (Math.pow(fin/init, 1/yrs)-1)*100;
+  const totalReturn = ((fin-init)/init)*100;
+
+  showRes('cagr', rr([
+    ['CAGR', (cagr>=0?'+':'')+f2(cagr)+'%', true],
+    ['Total Return', (totalReturn>=0?'+':'')+f2(totalReturn)+'%'],
+    ['From £'+f2(init)+' to £'+f2(fin), 'over '+yrs+' years'],
+    ['£10,000 at this CAGR', '£'+f2(10000*Math.pow(1+cagr/100,yrs))],
+  ], cagr>=0
+    ? 'A CAGR of '+f2(cagr)+'% means your investment doubled every '+f1(72/cagr)+' years (Rule of 72).'
+    : 'A negative CAGR of '+f2(cagr)+'% represents declining value over the period.'), false, cagr<0);
+
+  addHist('CAGR', '£'+f2(init)+' → £'+f2(fin)+' over '+yrs+'yr', (cagr>=0?'+':'')+f2(cagr)+'%/yr');
+}
+
+// ── Leverage & Margin ──
+function calcLeverage() {
+  const pos = resolve(val('lev-pos'));
+  const margin = resolve(val('lev-margin'));
+  const acc = resolve(val('lev-acc'));
+
+  if ([pos,margin,acc].some(isNaN)) return showErr('leverage','All fields required');
+  if (pos<=0||margin<=0||acc<=0) return showErr('leverage','All values must be positive');
+  if (margin>pos) return showErr('leverage','Margin cannot exceed position value');
+  if (margin>acc) return showErr('leverage','Margin cannot exceed account size');
+
+  const lev = pos/margin;
+  const marginPctAcc = (margin/acc)*100;
+  const posPctAcc = (pos/acc)*100;
+  const onePercMove = pos*0.01;
+  const onePctOnMargin = (onePercMove/margin)*100;
+
+  const risk = lev>20?'Extremely high risk — very high likelihood of liquidation on normal volatility':
+               lev>10?'High risk — suitable only for very short-term trades with tight stops':
+               lev>5?'Moderate risk — manage positions carefully':
+               lev>2?'Conservative leverage — appropriate for most strategies':
+               'Low leverage — prudent and controlled exposure';
+
+  showRes('leverage', rr([
+    ['Effective Leverage', f1(lev)+':1', true],
+    ['Margin as % of Account', f2(marginPctAcc)+'%'],
+    ['Position as % of Account', f2(posPctAcc)+'×'],
+    ['1% price move = gain/loss', '£'+f2(onePercMove)+' ('+f1(onePctOnMargin)+'% on margin)'],
+    ['Position Value', '£'+f2(pos)],
+    ['Margin Used', '£'+f2(margin)],
+  ], risk));
+
+  addHist('Leverage & Margin', 'Position £'+f2(pos)+', Margin £'+f2(margin), f1(lev)+':1');
+}
+
+// ── Variables ──
+function addVar() {
+  const name = document.getElementById('var-name').value.trim();
+  const valStr = document.getElementById('var-val').value.trim();
+  if (!name) return showToast('Enter a variable name');
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,19}$/.test(name)) return showToast('Name must start with a letter, max 20 chars');
+  const v = parseFloat(valStr);
+  if (isNaN(v)) return showToast('Enter a valid number');
+  S.vars[name] = v;
+  document.getElementById('var-name').value = '';
+  document.getElementById('var-val').value = '';
+  saveS(); renderVars(); showToast(name+' = '+v+' saved');
+}
+
+function delVar(name) {
+  delete S.vars[name];
+  saveS(); renderVars();
+}
+
+function renderVars() {
+  const el = document.getElementById('var-list');
+  const keys = Object.keys(S.vars);
+  if (!keys.length) { el.innerHTML='<div class="empty-state">No variables saved yet</div>'; return; }
+  el.innerHTML = keys.map(k=>
+    '<div class="var-item">'+
+    '<span class="var-name">'+esc(k)+'</span>'+
+    '<span class="var-val">= '+esc(String(S.vars[k]))+'</span>'+
+    '<button class="var-del" onclick="delVar(\''+esc(k)+'\')">×</button>'+
+    '</div>'
+  ).join('');
+}
+
+// ── History ──
+function addHist(type, summary, result) {
+  const ts = new Date();
+  S.hist.unshift({
+    type, summary, result,
+    ts: ts.toLocaleDateString('en-GB')+' '+ts.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+  });
+  if (S.hist.length>100) S.hist = S.hist.slice(0,100);
+  saveS(); renderHist();
+}
+
+function clearHist() {
+  S.hist = []; saveS(); renderHist(); showToast('History cleared');
+}
+
+function renderHist() {
+  const el = document.getElementById('hist-list');
+  const cnt = document.getElementById('hist-count');
+  cnt.textContent = S.hist.length+' calculation'+(S.hist.length!==1?'s':'');
+  if (!S.hist.length) { el.innerHTML='<div class="empty-state">No calculations yet</div>'; return; }
+  el.innerHTML = S.hist.map(h=>
+    '<div class="hist-item">'+
+    '<div class="hist-type">'+esc(h.type)+'</div>'+
+    '<div class="hist-summary">'+esc(h.summary)+'</div>'+
+    '<div class="hist-result">'+esc(h.result)+'</div>'+
+    '<div class="hist-time">'+esc(h.ts)+'</div>'+
+    '</div>'
+  ).join('');
+}
+
+// ── Variable Hint ──
+function vh(inp, hintId) {
+  const hint = document.getElementById(hintId);
+  if (!hint) return;
+  const v = inp.value.trim();
+  if (v && S.vars[v] !== undefined) {
+    hint.textContent = '→ '+S.vars[v];
+  } else {
+    hint.textContent = '';
+  }
+}
+
+// ── EV rows init ──
+function initEvRows() {
+  for (let i=0;i<3;i++) addEvRow();
+}
+
+// ── Utilities ──
+function val(id) { return document.getElementById(id).value; }
+
+function resolve(s) {
+  const trimmed = String(s).trim();
+  const n = parseFloat(trimmed);
+  if (!isNaN(n) && trimmed !== '') return n;
+  if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed) && S.vars[trimmed] !== undefined) {
+    return parseFloat(S.vars[trimmed]);
+  }
+  return NaN;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function f1(n) { return parseFloat(n.toFixed(1)).toString(); }
+function f2(n) { return Math.abs(n)<1e10 ? n.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}) : n.toExponential(2); }
+function f3(n) { return parseFloat(n.toFixed(3)).toString(); }
+function f4(n) { return parseFloat(n.toFixed(4)).toString(); }
+
+function rr(rows, note='', forceNeg=false) {
+  const html = rows.map(([lbl,v,hi])=>
+    '<div class="res-row'+(hi?' res-hi':'')+(forceNeg&&hi?' res-neg':'')+'">'+
+    '<span class="res-lbl">'+lbl+'</span>'+
+    '<span class="res-val">'+esc(String(v))+'</span>'+
+    '</div>'
+  ).join('');
+  return html+(note?'<div class="res-note">'+note+'</div>':'');
+}
+
+function showRes(id, html, isNeg=false, isNegAlt=false) {
+  const el = document.getElementById('res-'+id);
+  el.innerHTML = html;
+  el.classList.add('show');
+  if (isNeg||isNegAlt) {
+    el.style.borderColor = 'rgba(255,60,50,0.25)';
+    el.style.background = 'rgba(255,60,50,0.05)';
+  } else {
+    el.style.borderColor = '';
+    el.style.background = '';
+  }
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById('res-'+id);
+  el.innerHTML = '<div style="color:var(--err);font-size:13px;font-weight:500">⚠ '+esc(msg)+'</div>';
+  el.classList.add('show');
+  el.style.borderColor = 'rgba(255,60,50,0.3)';
+  el.style.background = 'rgba(255,60,50,0.06)';
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+// ── Init ──
+loadS();
+setTheme(S.dark);
+document.getElementById('themeChk').checked = S.dark;
+updDisp();
+renderVars();
+renderHist();
+initEvRows();
+</script>
+</body>
+</html>
