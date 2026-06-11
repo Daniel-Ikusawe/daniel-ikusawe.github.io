@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daniel Ikusawe — Projects</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg2: #f7f7f7;
+      --txt: #0a0a0a;
+      --muted: #999;
+      --border: #e2e2e2;
+    }
+
+    body.dark {
+      --bg: #0d0d0d;
+      --bg2: #161616;
+      --txt: #f0f0f0;
+      --muted: #4a4a4a;
+      --border: #252525;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ── Header ── */
+    header {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 64px 32px 48px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .name {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--txt);
+    }
+
+    .tagline {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 6px;
+      font-weight: 400;
+    }
+
+    /* ── Theme toggle ── */
+    .toggle { position: relative; width: 34px; height: 18px; }
+    .toggle input { display: none; }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: #e2e2e2;
+      border-radius: 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #999;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .toggle input:checked + .toggle-track { background: #2a2a2a; }
+    .toggle input:checked + .toggle-track::after { transform: translateX(16px); background: #fff; }
+
+    /* ── Divider ── */
+    .divider {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Projects ── */
+    .projects {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 32px 80px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .project-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+      background: var(--bg);
+    }
+
+    .project-card:hover {
+      background: var(--bg2);
+      border-color: var(--txt);
+      transform: translateY(-2px);
+    }
+
+    .project-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .project-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--txt);
+      letter-spacing: -0.01em;
+    }
+
+    .project-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .project-tag {
+      margin-top: auto;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      width: fit-content;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <div class="name">Daniel Ikusawe</div>
+      <div class="tagline">Projects &amp; Tools</div>
+    </div>
+    <label class="toggle" title="Toggle dark mode">
+      <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+      <span class="toggle-track"></span>
+    </label>
+  </header>
+
+  <div class="divider"></div>
+
+  <div class="projects">
+
+    <a class="project-card" href="./daily-tracker/">
+      <div class="project-icon">▣</div>
+      <div class="project-name">Daily Tracker</div>
+      <div class="project-desc">A productivity tool for managing daily tasks, scheduling time blocks, logging progress, and setting weekly and monthly goals.</div>
+      <div class="project-tag">HTML · Local</div>
+    </a>
+
+    <!-- Add new project cards below this line -->
+
+  </div>
+
+  <footer>Built by Daniel Ikusawe</footer>
+
+  <script>
+    function toggleTheme() {
+      const dark = document.getElementById('themeToggle').checked;
+      document.body.classList.toggle('dark', dark);
+      localStorage.setItem('portfolio_dark', dark);
+    }
+
+    const saved = localStorage.getItem('portfolio_dark');
+    if (saved === 'true') {
+      document.body.classList.add('dark');
+      document.getElementById('themeToggle').checked = true;
+    }
+  </script>
+
+</body>
+</html>
